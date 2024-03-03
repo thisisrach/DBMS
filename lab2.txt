@@ -1,0 +1,105 @@
+create table salesman(
+salesman_id int,
+name varchar(20),
+city varchar(20),
+commission int,
+primary key(salesman_id)
+);
+
+insert into salesman values(1,'arun','mangalore',15);
+insert into salesman values(2,'harsha','bangalore',25);
+insert into salesman values(3,'sagar','mysore',20);
+insert into salesman values(4,'priya','mangalore',30);
+insert into salesman values(5,'ramya','delhi',15);
+
+create table customer(
+customer_id int,
+cust_name varchar(20),
+city varchar(20),
+grade int,
+salesman_id int,
+primary key(customer_id),
+foreign key(salesman_id) references salesman(salesman_id) on delete cascade
+);
+
+insert into customer values(10,'ravi','bangalore',100,1);
+insert into customer values(11,'shwetha','mangalore',300,1);
+insert into customer values(12,'shalini','chennai',500,2);
+insert into customer values(13,'sushmitha','bangalore',700,2);
+insert into customer values(14,'pramya','bangalore',500,3);
+
+create table orders(
+ord_no int,
+purchase_amt int,
+ord_date date,
+customer_id int,
+salesman_id int,
+primary key(ord_no),
+foreign key(customer_id) references customer(customer_id) on delete cascade,
+foreign key(salesman_id) references salesman(salesman_id) on delete cascade
+);
+
+insert into orders values(50,5000,'2017-01-05',10,1);
+insert into orders values(51,3000,'2017-01-17',10,2);
+insert into orders values(52,4000,'2017-02-17',11,2);
+insert into orders values(53,4500,'2017-03-17',12,3);
+insert into orders values(54,2000,'2017-02-17',13,1);
+
+select grade,count(*) as count
+from customer
+group by grade
+having grade >
+(
+select avg(grade)
+from customer
+where city='bangalore'
+);
+
+select s.salesman_id,s.name
+from salesman s,customer c
+where s.salesman_id=c.salesman_id
+group by(s.salesman_id)
+having count(*)>1;
+
+select name,'exists' as samecity
+from salesman s
+where city in
+(
+select city 
+from customer c
+where s.salesman_id=c.salesman_id
+)
+UNION
+select name,'not exists' as samecity
+from salesman s
+where city not in
+(
+select city 
+from customer c
+where s.salesman_id=c.salesman_id
+);
+
+create view highest_order as
+select s.salesman_id,s.name,o.purchase_amt,o.ord_date
+from salesman s,orders o
+where s.salesman_id=o.salesman_id and
+o.purchase_amt =
+(
+select max(purchase_amt)
+from orders c
+where c.ord_date=o.ord_date
+);
+
+delete from salesman where salesman_id=1;
+
+
+
+
+
+
+
+
+
+
+
+
