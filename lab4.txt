@@ -1,0 +1,189 @@
+create table student
+(
+usn varchar(20),
+sname varchar(20),
+address varchar(20),
+phone bigint,
+gender char(1),
+primary key(usn)
+);
+
+
+insert into student values('CD001','Arun','Bangalore',7463567489,'M');
+insert into student values('CD002','Abhishek','Bangalore',6736542789,'M');
+insert into student values('CD003','Aparna','Karwar',9637652438,'F');
+insert into student values('CD004','Bhoomika','Bijapur',89245367653,'F');
+insert into student values('CD005','Ranjith','Bangalore',9832121234,'M');
+insert into student values('CD006','Prajwal','Bangalore',9876354536,'M');
+insert into student values('CD007','Sahana','Bantwal',7898798765,'F');
+
+create table semsec
+(
+ssid varchar(20),
+sem int,
+sec char(1),
+primary key(ssid)
+);
+
+insert into semsec values('CD7A',7,'A');
+insert into semsec values('CD7B',7,'B');
+insert into semsec values('CD7C',7,'C');
+insert into semsec values('CD6A',6,'A');
+insert into semsec values('CD6B',6,'B');
+insert into semsec values('CD6C',6,'C');
+
+create table class
+(
+usn varchar(20),
+ssid varchar(20),
+primary key(usn,ssid),
+foreign key(usn) references student(usn) on delete cascade,
+foreign key(ssid) references semsec(ssid) on delete cascade
+);
+
+insert into class values('CD001','CD7A');
+insert into class values('CD002','CD7A');
+insert into class values('CD003','CD7B');
+insert into class values('CD004','CD7C');
+insert into class values('CD005','CD6A');
+insert into class values('CD006','CD6B');
+insert into class values('CD007','CD6C');
+
+create table subject
+(
+subcode varchar(20),
+title varchar(20),
+sem int,
+credits int,
+primary key(subcode)
+);
+
+insert into subject values('CS51','DBMS',7,4);
+insert into subject values('CS52','CN',7,3);
+insert into subject values('CS53','DV',7,3);
+insert into subject values('CS54','SE',7,3);
+insert into subject values('CS55','DSA',6,4);
+insert into subject values('CS56','OS',6,3);
+insert into subject values('CS57','PIA',6,3);
+insert into subject values('CS58','CO',6,3);
+insert into subject values('CS59','ADE',6,4);
+
+create table IAmarks
+(
+usn varchar(20),
+subcode varchar(20),
+ssid varchar(20),
+test1 int,
+test2 int,
+test3 int,
+finalia int,
+primary key(usn,subcode,ssid),
+foreign key(usn) references student(usn) on delete cascade,
+foreign key(subcode) references subject(subcode) on delete cascade,
+foreign key(ssid) references semsec(ssid) on delete cascade
+);
+
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD001','CS51','CD7A',18,19,17);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD002','CS52','CD7A',16,12,14);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD003','CS53','CD7B',13,19,17);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD004','CS54','CD7C',14,13,12);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD005','CS57','CD6A',18,15,11);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD006','CS58','CD6B',11,12,19);
+insert into IAmarks (usn,subcode,ssid,test1,test2,test3) values ('CD007','CS59','CD6C',14,15,17);
+
+select s.*,ss.sem,ss.sec
+from student s,semsec ss,class c
+where s.usn=c.usn and ss.ssid=c.ssid
+and ss.sem=7 and ss.sec='A';
+
+select ss.sem,ss.sec,s.gender,count(s.gender) as count
+from student s,semsec ss,class c
+where s.usn=c.usn and ss.ssid=c.ssid
+group by ss.sem,ss.sec,s.gender
+order by sem;
+
+create view stu_test1_marks_view as
+select test1,subcode
+from IAmarks
+where usn='CD001';
+
+
+create view best_two_finder as
+select 
+    usn, 
+    subcode, 
+    GREATEST(test1, test2, test3) as highest,
+    LEAST(
+        GREATEST(test1, test2),
+        GREATEST(test1, test3),
+        GREATEST(test2, test3)
+    ) AS secondhighest
+FROM 
+    IAmarks;
+select * from best_two_finder;
+create view average2 as 
+(
+select subcode,((highest+secondhighest)/2) as final from best_two_finder
+);
+select * from average2;
+update IAmarks join average2
+on IAmarks.subcode=average2.subcode
+set IAmarks.finalIA=average2.final;
+
+
+SELECT 
+    s.usn,
+    s.sname,
+    s.address,
+    s.phone,
+    s.gender,
+    CASE
+        WHEN IA.finalIA BETWEEN 17 AND 20 THEN 'OUTSTANDING'
+        WHEN IA.finalIA BETWEEN 12 AND 16 THEN 'AVERAGE'
+        ELSE 'WEAK'
+    END AS cat
+FROM 
+    student s,
+    semsec ss,
+    IAmarks IA,
+    subject sub
+WHERE 
+    s.usn = IA.usn 
+    AND ss.ssid = IA.ssid 
+    AND sub.subcode = IA.subcode 
+    AND sub.sem = 7;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
